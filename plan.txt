@@ -9,7 +9,7 @@
 	- provjera spajanja na USB-hub
 	- kalibracija kamera!!!
 	- implementacija logaritamske projekcije
-	#? implementacija optickog toka? / ne treba
+	#? implementacija optickog toka? / treba za inicijalnu fiksaciju
 	- motor controller
 
 3. TJEDAN / 13.3. - 19.3.
