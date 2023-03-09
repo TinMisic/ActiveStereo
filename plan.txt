@@ -1,0 +1,33 @@
+1. TJEDAN / 27.2. - 5.3.
+	+ printanje dijelova
+	+ sastavljanje
+	+ ponavljanje najrelevantnijih radova sa Seminara 1 i dodavanje dodatnih radova na temu
+	+ raspored sistema
+
+	
+2. TJEDAN / 6.3. - 12.3.
+	- provjera spajanja na USB-hub
+	- kalibracija kamera!!!
+	- implementacija logaritamske projekcije
+	#? implementacija optickog toka? / ne treba
+	- motor controller
+
+3. TJEDAN / 13.3. - 19.3.
+	* implementacija udaljenosti i praćenja
+
+4. TJEDAN / 20.3. - 26.3.
+	* pisanje
+
+5. TJEDAN / 27.3. - 2.4.
+	* pisanje
+
+6. TJEDAN / 3.4. - 9.4.
+	* pisanje
+
+7. TJEDAN / 10.4. - 16.4.
+	* pisanje
+
+8. i 9. TJEDAN / 17.4 - 28.4
+	- prepravke i poslijednje uređivanje
+	
+9.TJEDAN - KONAČNA PREDAJA
