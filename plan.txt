@@ -6,11 +6,11 @@
 
 	
 2. TJEDAN / 6.3. - 12.3.
-	- provjera spajanja na USB-hub
+	+ provjera spajanja na USB-hub
 	- kalibracija kamera!!!
 	- implementacija logaritamske projekcije
 	#? implementacija optickog toka? / treba za inicijalnu fiksaciju
-	- motor controller
+	- motor controller -> visual servoing
 
 3. TJEDAN / 13.3. - 19.3.
 	* implementacija udaljenosti i praćenja
