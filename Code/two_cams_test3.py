@@ -28,8 +28,8 @@ def main():
     queue = Queue()
 
     # Create two threads for two cameras
-    thread1 = CameraThread(1, "Camera 1", 4, queue)
-    thread2 = CameraThread(2, "Camera 2", 6, queue)
+    thread1 = CameraThread(1, "Camera 1", 6, queue)
+    thread2 = CameraThread(2, "Camera 2", 4, queue)
 
     # Start the threads
     thread1.start()
