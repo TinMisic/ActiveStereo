@@ -8,16 +8,17 @@
 2. TJEDAN / 6.3. - 12.3.
 	+ provjera spajanja na USB-hub
 	+ kalibracija kamera
-	- implementacija logaritamske projekcije
-	- implementacija optickog toka? / treba za inicijalnu fiksaciju
-	- motor controller -> visual servoing :: Funkcija uzima par koordinata za obje kamere i pomjera ih tako da gledaju točno u točku koja je bila projicirana na dane piksele
+	x implementacija logaritamske projekcije
+	x implementacija optickog toka? / treba za inicijalnu fiksaciju
+	x motor controller -> visual servoing :: Funkcija uzima par koordinata za obje kamere i pomjera ih tako da gledaju točno u točku koja je bila projicirana na dane piksele
 
 3. TJEDAN / 13.3. - 19.3.
+	- opticki tok -> ulaz dvije slike i izlaz centroida
 	- visual servoing -> ((xL,yL),(xR,yR)) -> ((alphaHL,alphaVL),(alphaHR,alphaVR))
 	- logaritamska projekcija i operatori
-	- opticki tok -> ulaz dvije slike i izlaz centroida
 
 4. TJEDAN / 20.3. - 26.3.
+	* integracija svega
 	* pisanje
 
 5. TJEDAN / 27.3. - 2.4.
