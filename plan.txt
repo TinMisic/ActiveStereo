@@ -13,7 +13,7 @@
 	x motor controller -> visual servoing :: Funkcija uzima par koordinata za obje kamere i pomjera ih tako da gledaju točno u točku koja je bila projicirana na dane piksele
 
 3. TJEDAN / 13.3. - 19.3.
-	- opticki tok -> ulaz dvije slike i izlaz centroida
+	+ detekcija pokreta -> ulaz dvije slike i izlaz centroida
 	- visual servoing -> ((xL,yL),(xR,yR)) -> ((alphaHL,alphaVL),(alphaHR,alphaVR))
 	- logaritamska projekcija i operatori
 

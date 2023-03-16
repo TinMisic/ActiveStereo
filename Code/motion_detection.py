@@ -25,7 +25,7 @@ def centroidSmoothing(oldCent, newCent, sFactor = 0.95):
         return (x, y)
 
 if __name__=="__main__":
-    cap = cv.VideoCapture(4)
+    cap = cv.VideoCapture(0)
 
     ret, start_frame = cap.read()
     if not ret:
@@ -48,17 +48,18 @@ if __name__=="__main__":
         new_frame = cv.GaussianBlur(new_frame, (5, 5), 0)
 
         threshold, centroid = centroidOfDif(start_frame, new_frame, 10000)
-        threshold = cv.cvtColor(threshold, cv.COLOR_GRAY2RGB)
+        img = cv.cvtColor(threshold, cv.COLOR_GRAY2RGB)
         centroid = centroidSmoothing(old_centorid, centroid, 0.85)
         print(centroid)
         if centroid != (None, None):
-            cv.circle(threshold, centroid, 10, color=(0, 0, 255), thickness=-1)
-            cv.putText(threshold, "target", (centroid[0] - 25, centroid[1] - 25),cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+            cv.circle(img, centroid, 10, color=(0, 0, 255), thickness=-1)
+            cv.putText(img, "target", (centroid[0] - 25, centroid[1] - 25),cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
         
         start_frame = new_frame
         old_centorid = centroid
-        cv.imshow("motion",threshold)
+        cv.imshow("motion",img)
         if cv.waitKey(1) == ord('q'):
+            cv.imwrite("diff.jpg",threshold)
             break
     
     cap.release()
