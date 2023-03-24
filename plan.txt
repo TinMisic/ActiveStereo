@@ -14,12 +14,13 @@
 
 3. TJEDAN / 13.3. - 19.3.
 	+ detekcija pokreta -> ulaz dvije slike i izlaz centroida
-	- visual servoing -> ((xL,yL),(xR,yR)) -> ((alphaHL,alphaVL),(alphaHR,alphaVR))
-	- logaritamska projekcija i operatori
+	+ visual servoing -> ((xL,yL),(xR,yR)) -> ((alphaHL,alphaVL),(alphaHR,alphaVR))
+	x logaritamska projekcija i operatori
 
 4. TJEDAN / 20.3. - 26.3.
-	* integracija svega
-	* pisanje
+	- logaritamska projekcija i operatori
+	- integracija svega
+	- pisanje: outline, spisak literaure, napisati poglavlje 2.
 
 5. TJEDAN / 27.3. - 2.4.
 	* pisanje

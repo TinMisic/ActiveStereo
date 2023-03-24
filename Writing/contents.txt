@@ -1,0 +1,42 @@
+RAD:
+	Naslov: Praćenje objekata aktivnim stereo vizualnim sustavom
+	
+	Sadržaj:
+	1. Uvod
+	2. Pristupi praćenju gibajućih objekata stereo vizijom
+		2.1. Stereo vizija
+		2.2. Aktivni stereo sustav
+			2.2.1. Horopter
+			2.2.2. Filter nultog dispariteta
+			2.2.3. Log-polarno mapiranje
+	3. Implementacija aktivnog stereo sustava
+		3.1. Modeliranje sustava i specifikacije
+			3.1.1. Hardverske komponente
+			3.1.2. Komponente programske potpore
+		3.2. Cjevovod sustava i upravljanje
+			3.2.1. Inicijalizacija sustava
+			3.2.2. Određivanje pozicije objekta
+			3.2.3. Sustav stereo vizije
+	4. Praćenje gibajućeg objekta
+		4.1. Eksperimantalna postava
+		4.2. Rezultati i diskusija
+	5. Zaključak
+	6. Zahvale
+	7. Literatura
+	8. Sažetak
+
+
+SEMINAR:
+	Naslov: Praćenje objekata aktivnim stereo vizualnim sustavom
+	
+	Sadržaj:
+	1. Uvod
+	2. Pristupi praćenju gibajućih objekata stereo vizijom
+		2.1. Stereo vizija
+		2.2. Aktivni stereo sustavi
+			2.2.1. Horopter
+			2.2.2. Filter nultog dispariteta
+			2.2.3. Log-polarno mapiranje
+	5. Zaključak
+	6. Literatura
+	7. Sažetak
