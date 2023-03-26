@@ -1,7 +1,7 @@
 # Tests if the centroid in the regular image is the same as the one calculated in the LPM and then transformed back into normal coordinates
 import cv2 as cv
 
-original = cv.imread('diff.jpg')
+original = cv.imread('/home/tin/Pictures/Webcam/room.jpg')
 original = cv.cvtColor(original, cv.COLOR_RGB2GRAY)
 
 # calculate centorid in original
@@ -16,9 +16,10 @@ cv.circle(colored1, centroid, 5, (255,0,255),2)
 cv.imshow("original with centroid",colored1)
 
 # transform into LPM
-shape = (128, 256)
-margin = 0.90
-center = (original.shape[0]/2, original.shape[1]/2)
+shape = (50, 50)
+margin = 0.99
+center = (original.shape[1]//2, original.shape[0]//2)
+print(center)
 polar = cv.warpPolar(original, shape, center, original.shape[1]*margin*0.5, cv.WARP_POLAR_LOG)
 # calculate centorid in polar
 M = cv.moments(polar)
@@ -37,6 +38,7 @@ cv.imshow("recovered polar with centroid from polar",recovered_c)
 
 
 recovered = cv.warpPolar(polar, (original.shape[1], original.shape[0]), center, original.shape[1]*margin*0.5,cv.WARP_POLAR_LOG + cv.WARP_INVERSE_MAP)
+# recovered = cv.warpPolar(polar, shape, center, shape[1]*margin*0.5,cv.WARP_POLAR_LOG + cv.WARP_INVERSE_MAP)
 # calculate centorid in polar
 M = cv.moments(recovered)
 
@@ -50,5 +52,6 @@ cv.imshow("recovered with centorid from recovered",colored3)
 
 cv.waitKey(0)    
 cv.destroyAllWindows()
+print(center)
 
 # Conclusion: Centorid calculated in LPM does not correspond to the centroid in the original/recovered image

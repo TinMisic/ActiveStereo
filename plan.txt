@@ -19,8 +19,9 @@
 
 4. TJEDAN / 20.3. - 26.3.
 	- logaritamska projekcija i operatori
-	- integracija svega
-	- pisanje: outline, spisak literaure, napisati poglavlje 2.
+	~ integracija svega
+	+ pisanje: outline, spisak literaure
+	- pisanje: napisati poglavlje 2.
 
 5. TJEDAN / 27.3. - 2.4.
 	* pisanje
