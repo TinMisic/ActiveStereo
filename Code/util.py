@@ -68,27 +68,77 @@ class SobelLPM(EdgeDetector):
     def detect(self, input_img):
         pass
 
+class SobelPseudoLPM(EdgeDetector):
+    '''Sobel vertical edge detector on LPM image. 
+    
+    This detector does not work directly on the LPM. 
+    
+    The procedure is: convertToCartesian(image)->cartesianSobel(image)->convertToLPM(image)'''
+    def __init__(self, mapping: ImgMap, ksize = 7):
+        self.mapping = mapping
+        self.ksize = ksize
+
+    def detect(self, input_img):
+        # convert to cartesian
+        cart = self.mapping.inv(input_img)
+
+        # Apply Sobel filter to get vertical edges
+        sobelx = cv2.Sobel(cart, cv2.CV_64F, 0, 1, self.ksize)
+
+        # Convert the output back to uint8 and normalize
+        abs_sobelx = np.absolute(sobelx)
+        scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+
+        # convert back to LPM
+        detected = self.mapping.map(scaled_sobel)
+
+        return detected
+
+
 # Shift operator
 class ShiftOp(metaclass=abc.ABCMeta):
     '''Abstract class for a horizontal shift operation. Has only one function: shift'''
 
     @abc.abstractmethod
-    def shift(sellf, input_img, delta):
+    def shift(self, input_img, delta):
         """Shifts the image horizontaly by delta units"""
         pass
 
 class ShiftCartesian(ShiftOp):
     '''Horizontal shift using cartesian coordinates'''
 
-    def shift(sellf, input_img, delta):
+    def shift(self, input_img, delta):
         M = np.float32([[1, 0, delta],[0, 1, 0]])
         return cv2.warpAffine(input_img, M, (input_img.shape[1], input_img.shape[0]))
     
 class ShiftLPM(ShiftOp):
     '''Horizontal shift using log-polar coordinates. NOT IMPLEMENTED'''
 
-    def shift(sellf, input_img, delta):
+    def shift(self, input_img, delta):
         pass
+
+class ShiftPseudoLPM(ShiftOp):
+    '''Horizontal shift using LPM. 
+    
+    This operator does not work directly on the LPM. 
+    
+    The procedure is: convertToCartesian(image)->shift(image)->convertToLPM(image)'''
+
+    def __init__(self, mapping: ImgMap):
+        self.mapping = mapping
+
+    def shift(self, input_img, delta):
+        # convert image to cartesian
+        cart = self.mapping.inv(input_img)
+
+        # shift the image by delta
+        M = np.float32([[1, 0, delta],[0, 1, 0]])
+        shft = cv2.warpAffine(input_img, M, (input_img.shape[1], input_img.shape[0]))
+
+        # convert back to lpm
+        final = self.mapping.map(shft)
+
+        return final
 
 if __name__=="__main__":
     # Load image
@@ -100,8 +150,8 @@ if __name__=="__main__":
 
     # Initialize classes
     mp = LogPolarMap((gray.shape[1],gray.shape[0]),(100,100))
-    edgeDetect = SobelCartesian()
-    shift = ShiftCartesian()
+    edgeDetect = SobelPseudoLPM(mp)
+    shift = ShiftPseudoLPM(mp)
 
     m = mp.map(gray)
     cv2.imshow("Mapping result",m)

@@ -25,3 +25,4 @@ while True:
     angle = float(input("Angle:"))
 
     servos[i].write((angle+offsets[i])*scaling)
+

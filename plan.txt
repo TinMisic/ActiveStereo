@@ -18,19 +18,21 @@
 	x logaritamska projekcija i operatori
 
 4. TJEDAN / 20.3. - 26.3.
-	- logaritamska projekcija i operatori
-	~ integracija svega
+	x logaritamska projekcija i operatori
+	~ integracija svega > glavni kostur i util 
 	+ pisanje: outline, spisak literaure
-	- pisanje: napisati poglavlje 2.
+	x pisanje: napisati poglavlje 2.
 
 5. TJEDAN / 27.3. - 2.4.
-	* pisanje
+	+ pseudo LPM operatori
+	+ integracija svega > camera thread and motor init
+	- pisanje: poglavlje 2
 
 6. TJEDAN / 3.4. - 9.4.
-	* pisanje
+	- pisanje: poglavlje 3
 
 7. TJEDAN / 10.4. - 16.4.
-	* pisanje
+	- pisanje: poglavlja 1, 4, 5
 
 8. i 9. TJEDAN / 17.4 - 28.4
 	- prepravke i poslijednje uređivanje
