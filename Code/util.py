@@ -149,7 +149,7 @@ if __name__=="__main__":
     cv2.imshow("Original Image",gray)
 
     # Initialize classes
-    mp = LogPolarMap((gray.shape[1],gray.shape[0]),(100,100))
+    mp = LogPolarMap((gray.shape[1],gray.shape[0]),(300,100))
     edgeDetect = SobelPseudoLPM(mp)
     shift = ShiftPseudoLPM(mp)
 

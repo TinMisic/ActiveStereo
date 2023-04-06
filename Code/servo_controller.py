@@ -32,4 +32,4 @@ def getAngles(cent_L, cent_R, CM_L, CM_R):
     # equalise vertical angles for both cameras to ensure center projection lines are coplanar
     alphaV = (alphaVL + alphaVR) / 2
 
-    return ((alphaHL, alphaV),(alphaHR, alphaV))
+    return [alphaHL, alphaV, alphaHR, alphaV]

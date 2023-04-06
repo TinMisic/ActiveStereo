@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-def centroidOfDif(frame1, frame2, mov_thresh):
+def centroidOfDif(frame1, frame2, mov_thresh=10000):
     difference = cv.absdiff(frame1, frame2)
     threshold = cv.threshold(difference, 25, 255, cv.THRESH_BINARY)[1]
 

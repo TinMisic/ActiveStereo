@@ -1,0 +1,19 @@
+[1] D. Zhou, Y. Dai and H. Li, "Ground-Plane-Based Absolute Scale Estimation for Monocular Visual
+Odometry," in IEEE Transactions on Intelligent Transportation Systems, vol. 21, no. 2, pp. 791-802,
+Feb. 2020, doi: 10.1109/TITS.2019.2900330.
+[2] S. Song, M. Chandraker and C. C. Guest, "High Accuracy Monocular SFM and Scale Correction
+for Autonomous Driving," in IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 38,
+no. 4, pp. 730-743, 1 April 2016, doi: 10.1109/TPAMI.2015.2469274.
+[3] A. T. N. Nishitani and D. F. Wolf, "Solving the Monocular Visual Odometry Scale Problem with the
+Efficient Second-Order Minimization Method," 2015 12th Latin American Robotics Symposium and
+2015 3rd Brazilian Symposium on Robotics (LARS-SBR), Uberlandia, Brazil, 2015, pp. 126-131, doi:
+10.1109/LARS-SBR.2015.74.
+[4] Y. Li, S. Wang, D. Yang and D. Sun, "Metric online monocular SLAM by using a known reference,"
+2016 12th World Congress on Intelligent Control and Automation (WCICA), Guilin, China, 2016, pp.
+3002-3006, doi: 10.1109/WCICA.2016.7578496.
+[5] A. Sharma, I. Wadhwa and R. Kala, "Monocular camera based object recognition and 3D-
+localization for robotic grasping," 2015 International Conference on Signal Processing, Computing and
+Control (ISPCC), Waknaghat, India, 2015, pp. 225-229, doi: 10.1109/ISPCC.2015.7375030.
+[6] S. Guo, J. Guo and C. Bai, "Semi-Direct Visual Odometry Based on Monocular Depth Estimation,"
+2019 IEEE International Conference on Unmanned Systems (ICUS), Beijing, China, 2019, pp. 720-
+724, doi: 10.1109/ICUS48101.2019.8996049.
