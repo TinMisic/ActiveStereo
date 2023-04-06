@@ -26,7 +26,7 @@ def centroidSmoothing(oldCent, newCent, sFactor = 0.95):
         return (x, y)
 
 if __name__=="__main__":
-    cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(6)
 
     ret, start_frame = cap.read()
     if not ret:

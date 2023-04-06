@@ -24,15 +24,15 @@ def getAngles(cent_L, cent_R, CM_L, CM_R):
 
     # calculation for right
     uR = cR[0] - cent_R[0]
-    vR = -(cR[1] - cent_R[1])  # servo orientation here is fine. negative for down, positive for up
+    vR = (cR[1] - cent_R[1])  # servo orientation here is fine. negative for down, positive for up
 
     alphaHR = np.rad2deg(np.arctan2(uR, fxR))
     alphaVR = np.rad2deg(np.arctan2(vR, fyR))
 
     # equalise vertical angles for both cameras to ensure center projection lines are coplanar
-    alphaV = (abs(alphaVL) + abs(alphaVR)) / 2
+    alphaV = (alphaVL + alphaVR) / 2
 
-    alphaVL = -alphaV if alphaVL<0 else alphaV
-    alphaVR = -alphaV if alphaVR<0 else alphaV
+    # alphaVL = -alphaV if alphaVL<0 else alphaV
+    # alphaVR = -alphaV if alphaVR<0 else alphaV
 
-    return [alphaHL, alphaVL, alphaHR, alphaVR]
+    return [alphaHL, -alphaV, alphaHR, alphaV]
