@@ -7,11 +7,13 @@ def centroidOfDif(frame1, frame2, mov_thresh=10000):
 
     centroid = (None, None)    
     if threshold.sum() > mov_thresh:
+        # print("Passed threshold",threshold.sum())
         M = cv.moments(threshold)
 
         cX = int(M['m10'] / M['m00'])
         cY = int(M['m01'] / M['m00'])
         centroid = (cX, cY)
+        # print(centroid)
 
     return threshold, centroid
 

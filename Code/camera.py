@@ -72,8 +72,8 @@ class Camera(threading.Thread):
         self.distortion = distortion
 
 if __name__=="__main__":
-    cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 6)
-    cam2 = Camera("camera_parameters/camera1_intrinsics.dat", 0)
+    cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 4)
+    cam2 = Camera("camera_parameters/camera1_intrinsics.dat", 6)
 
     while True:
         # # Request new frames from all cameras
@@ -83,6 +83,7 @@ if __name__=="__main__":
         # # Get the latest frames from each camera
         frame1 = cam1.get_frame()
         if frame1 is not None:
+            # print(frame1.shape)
             cv2.imshow('L',frame1)
 
         frame2 = cam2.get_frame()

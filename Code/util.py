@@ -56,7 +56,7 @@ class SobelCartesian(EdgeDetector):
 
     def detect(self, input_img):
         # Apply Sobel filter to get vertical edges
-        sobelx = cv2.Sobel(input_img, cv2.CV_64F, 0, 1, self.ksize)
+        sobelx = cv2.Sobel(input_img, cv2.CV_64F, 1, 0, self.ksize)
 
         # Convert the output back to uint8 and normalize
         abs_sobelx = np.absolute(sobelx)
@@ -83,14 +83,20 @@ class SobelPseudoLPM(EdgeDetector):
         cart = self.mapping.inv(input_img)
 
         # Apply Sobel filter to get vertical edges
-        sobelx = cv2.Sobel(cart, cv2.CV_64F, 0, 1, self.ksize)
+        sobelx = cv2.Sobel(cart, cv2.CV_64F, 1, 0, self.ksize)
 
         # Convert the output back to uint8 and normalize
         abs_sobelx = np.absolute(sobelx)
         scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
 
+        # dilate edges
+        kernel = np.ones((3,3),np.uint8)
+
+        # Apply dilation to the image
+        dilated = cv2.dilate(scaled_sobel, kernel, iterations = 1)
+
         # convert back to LPM
-        detected = self.mapping.map(scaled_sobel)
+        detected = self.mapping.map(dilated)
 
         return detected
 
@@ -139,6 +145,28 @@ class ShiftPseudoLPM(ShiftOp):
         final = self.mapping.map(shft)
 
         return final
+    
+
+def generateShifts(image, shifter:ShiftOp, shifts=11):
+    """Generates the appropriate shifts for small rotations of the camera"""
+    units = [4*x for x in range(-(shifts//2),shifts//2+1)]
+    res = dict()
+    for unit in units:
+        res[unit] = shifter.shift(image,unit)
+
+    return res
+
+def getMaxZDF(ZDFDict):
+    """Takes dictionary of ZDF images and returns the one with the maximum sum"""
+    maxval = 0
+    maxunit = 0
+    for k in ZDFDict.keys():
+        val = ZDFDict[k].sum()
+        if val>maxval:
+            maxval = val
+            maxunit = k
+
+    return maxunit
 
 if __name__=="__main__":
     # Load image

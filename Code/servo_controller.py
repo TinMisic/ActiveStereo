@@ -36,3 +36,14 @@ def getAngles(cent_L, cent_R, CM_L, CM_R):
     # alphaVR = -alphaV if alphaVR<0 else alphaV
 
     return [alphaHL, -alphaV, alphaHR, alphaV]
+
+def getAngleNormalised(CM, shift):
+
+    fx = CM[0,0] # camera focus on x axis
+    
+
+    uL = -shift # shift is inverted
+
+    alpha = np.rad2deg(np.arctan2(uL, fx))
+
+    return alpha
