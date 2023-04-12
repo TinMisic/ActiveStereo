@@ -168,6 +168,22 @@ def getMaxZDF(ZDFDict):
 
     return maxunit
 
+def updateAngles(alphas, rel_ang, limit=90):
+    summ = [alphas[i] + rel_ang[i] for i in range(len(alphas))]
+    limited = []
+    for s in summ:
+        if s>limit:
+            limited.append(limit)
+        elif s<(-limit):
+            limited.append(-limit)
+        else:
+            limited.append(s)
+    
+    return limited
+
+def angleSmoothing(old, new, factor=0.85):
+    return [old[i]*factor + new[i]*(1-factor) for i in range(len(old))]
+
 if __name__=="__main__":
     # Load image
     img = cv2.imread('/home/tin/Pictures/Webcam/room.jpg')

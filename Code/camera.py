@@ -72,7 +72,7 @@ class Camera(threading.Thread):
         self.distortion = distortion
 
 if __name__=="__main__":
-    cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 4)
+    cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 0)
     cam2 = Camera("camera_parameters/camera1_intrinsics.dat", 6)
 
     while True:
