@@ -28,26 +28,19 @@ offset = 135    # center offset
 offsets = [x+offset for x in [2, 7, -4, -4]]    # individual offsets
 limit = 90      # absolute limit of servo movement
 speed = 60/0.13 # degrees per second
+height = 480
+width = 640
 
 # start board and initialize servos
-# print("INFO: Initializing servos...")
-# import pyfirmata
-# board = pyfirmata.Arduino('/dev/ttyUSB0')
+print("INFO: Initializing servos...")
+import pyfirmata
+board = pyfirmata.Arduino('/dev/ttyUSB0')
 
-# servos = list() # order = left-lower, left-upper, right-lower, right-upper
-# for i in range(4):
-#     s = board.get_pin('d:'+str(2+i)+':s') # initialize servo
-#     s.write(offsets[i]*scaling) # home position
-#     servos.append(s)
-
-i=0
-while i!=100:
-    im = left.get_frame()
-    try:
-        print(im.shape)
-        break
-    except Exception:
-        print("None")
+servos = list() # order = left-lower, left-upper, right-lower, right-upper
+for i in range(4):
+    s = board.get_pin('d:'+str(2+i)+':s') # initialize servo
+    s.write(offsets[i]*scaling) # home position
+    servos.append(s)
 
 time.sleep(1)
 print("INFO: Begin procedure")
@@ -91,24 +84,23 @@ try:
                     raise KeyboardInterrupt
             
             print("INFO: Initialization stopped")
-            # for i in range(len(servos)):
-            #     servos[i].write((angles[i] + offsets[i])*scaling)
+            for i in range(len(servos)):
+                servos[i].write((angles[i] + offsets[i])*scaling)
             # time.sleep(1/30)
             # init_flag=True
 
         else:
             print("INFO: Tracking started")
             still_start = time.time()
-            prev_frame_l = curr_frame_l = get_edges(left.get_frame())
-            prev_frame_r = curr_frame_r = get_edges(right.get_frame())
             old_centroid_l = (None, None)
             old_centroid_r = (None, None)
             while not init_flag:
-                # if (time.time() - still_start >= timeout):
-                #     print("INFO: No movement in",timeout,"seconds.")
-                #     break
-                curr_frame_l = get_edges(left.get_frame())
-                curr_frame_r = get_edges(right.get_frame())
+                if (time.time() - still_start >= timeout):
+                    print("INFO: No movement in",timeout,"seconds.")
+                    break
+
+                curr_frame_l = get_edges(left.get_frame()[20:height-20, 20:width-20])
+                curr_frame_r = get_edges(right.get_frame()[20:height-20, 20:width-20])
 
                 # generate shifts of vertical edge images
                 shiftDict = util.generateShifts(curr_frame_r, shft)
@@ -126,31 +118,33 @@ try:
 
                 # get pixels from ZDF shift with max match
                 pixel_shift = util.getMaxZDF(ZDFDict)
-                # cv.imshow("zdf max",ZDFDict[pixel_shift])
-
                 # convert pixel to angle
                 ZDFangle = servo.getAngleNormalised(right.intrinsic, pixel_shift)
 
                 # CENTROID CALCULATION
-                threshold_l, centroid_l = md.centroidOfDif(prev_frame_l, curr_frame_l, movement_thresh)
-                threshold_r, centroid_r = md.centroidOfDif(prev_frame_r, curr_frame_r, movement_thresh)
 
-                centroid_l = md.centroidSmoothing(old_centroid_l, centroid_l, 0.85)
-                centroid_r = md.centroidSmoothing(old_centroid_r, centroid_r, 0.85)
+                centroid_l = centroid_r = md.centroidCalc(ZDFDict[pixel_shift]) # get centroid from ZDF - the same centroid for both left and right, because ZDF is their shared edges
+                marked = cv.circle(ZDFDict[pixel_shift],centroid_l,5,255,-1)
+                cv.imshow("ZDF",marked)
+
+                # keep centroids from changing too fast
+                centroid_l = md.centroidSmoothing(old_centroid_l, centroid_l, 0.95)
+                centroid_r = md.centroidSmoothing(old_centroid_r, centroid_r, 0.95)
 
                 n_angles = angles
                 print("-----------------------")
                 print("ZDFangle",ZDFangle)
-                print("old angles",angles)
+                print("centroid:",centroid_l)
+                # print("old angles",angles)
                 if centroid_l != (None, None) and centroid_r != (None, None):
                     rel_ang = servo.getAngles(centroid_l, centroid_r, left.intrinsic, right.intrinsic)
                     print("rel_ang",rel_ang)
                     n_angles=util.updateAngles(angles,rel_ang)
-                    print("angles+rel_ang",n_angles)
+                    # print("angles+rel_ang",n_angles)
 
                 # Add virtual horopter angle to correct actual horopter
                 n_angles = util.updateAngles(n_angles,[0,0,ZDFangle,0])
-                print("angles+zdf",n_angles)
+                # print("angles+zdf",n_angles)
 
                 angles = util.angleSmoothing(angles,n_angles)
                 print("smoothed angles", angles)
@@ -159,22 +153,19 @@ try:
                 if pixel_shift!=0 or sum(rel_ang)!=0: # reset still timer
                     still_start = time.time()
 
-                # for i in range(len(servos)):
-                #     servos[i].write((angles[i] + offsets[i])*scaling) # move servos
+                for i in range(len(servos)):
+                    servos[i].write((angles[i] + offsets[i])*scaling) # move servos
 
                 # print target position and log to file
 
                 # Wait for servos to arrive?
                 # time.sleep(0.3)
 
-                # prev_frame_l = curr_frame_l
-                # old_centroid_l = centroid_l
-                # prev_frame_r = curr_frame_r
-                # old_centroid_r = centroid_r
-                prev_frame_l = curr_frame_l = get_edges(left.get_frame())
-                prev_frame_r = curr_frame_r = get_edges(right.get_frame())
-                old_centroid_l = (None, None)
-                old_centroid_r = (None, None)                
+                old_centroid_l = centroid_l
+                old_centroid_r = centroid_r               
+
+                curr_frame_l = cv.circle(curr_frame_l,centroid_l,5,255,-1)
+                curr_frame_r = cv.circle(curr_frame_r,centroid_r,5,255,-1)
 
                 combined = np.hstack((mp.inv(curr_frame_l),mp.inv(curr_frame_r)))
                 cv.imshow("view", combined)
@@ -184,11 +175,11 @@ try:
             init_flag = True
 
 except KeyboardInterrupt as e:
-    # for i in range(len(servos)):
-    #     servos[i].write((offsets[i])*scaling)
+    for i in range(len(servos)):
+        servos[i].write((offsets[i])*scaling)
         
     time.sleep(1)
     cv.destroyAllWindows()
     left.stop()
     right.stop()
-    # board.exit()
+    board.exit()

@@ -17,6 +17,15 @@ def centroidOfDif(frame1, frame2, mov_thresh=10000):
 
     return threshold, centroid
 
+def centroidCalc(frame):
+    cent = (None, None)
+    M = cv.moments(frame)
+    cX = int(M['m10'] / M['m00'])
+    cY = int(M['m01'] / M['m00'])
+    cent = (cX, cY)
+
+    return cent
+
 def centroidSmoothing(oldCent, newCent, sFactor = 0.95):
     if oldCent == (None, None):
         return newCent

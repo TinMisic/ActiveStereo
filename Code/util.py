@@ -147,9 +147,9 @@ class ShiftPseudoLPM(ShiftOp):
         return final
     
 
-def generateShifts(image, shifter:ShiftOp, shifts=11):
+def generateShifts(image, shifter:ShiftOp, shifts=11, stride=4):
     """Generates the appropriate shifts for small rotations of the camera"""
-    units = [4*x for x in range(-(shifts//2),shifts//2+1)]
+    units = [stride*x for x in range(-(shifts//2),shifts//2+1)]
     res = dict()
     for unit in units:
         res[unit] = shifter.shift(image,unit)
@@ -186,28 +186,33 @@ def angleSmoothing(old, new, factor=0.85):
 
 if __name__=="__main__":
     # Load image
-    img = cv2.imread('/home/tin/Pictures/Webcam/room.jpg')
+    img = cv2.imread('/home/tin/Downloads/marcus.png')
 
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     cv2.imshow("Original Image",gray)
 
     # Initialize classes
-    mp = LogPolarMap((gray.shape[1],gray.shape[0]),(300,100))
+    mp = LogPolarMap((gray.shape[1],gray.shape[0]),(100,100))
     edgeDetect = SobelPseudoLPM(mp)
     shift = ShiftPseudoLPM(mp)
 
     m = mp.map(gray)
     cv2.imshow("Mapping result",m)
+    cv2.imwrite("realLPM.png",m)
 
     e = edgeDetect.detect(m)
     cv2.imshow("Detected edges:",e)
 
-    i = mp.inv(e)
+    i = mp.inv(m)
     cv2.imshow("Inverted mapping",i)
+
+    merged = np.hstack((gray,i))
+    cv2.imwrite("lpm.png",merged)
 
     s = shift.shift(i, -20)
     cv2.imshow("Shift",s)
 
     cv2.waitKey()
     cv2.destroyAllWindows()
+    print(gray.shape)

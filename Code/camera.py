@@ -26,9 +26,15 @@ class Camera(threading.Thread):
                 # Undistort the frame
                 frame = cv2.undistort(cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY), self.intrinsic, self.distortion)
 
+                # # Get the dimensions of the image
+                # height, width = frame.shape[:2]
+
+                # # Trim 20 pixels off every edge of the image on each side
+                # frame = frame[20:height-20, 20:width-20]
+
                 # Append the latest frame to the buffer
                 with self.buffer_lock:
-                    self.buffer.append(frame)
+                    self.buffer.append(np.copy(frame))
 
                 # If the buffer has more than 1 frame, discard the oldest frame
                 with self.buffer_lock:
@@ -83,7 +89,7 @@ if __name__=="__main__":
         # # Get the latest frames from each camera
         frame1 = cam1.get_frame()
         if frame1 is not None:
-            # print(frame1.shape)
+            print(frame1.shape)
             cv2.imshow('L',frame1)
 
         frame2 = cam2.get_frame()
