@@ -19,10 +19,13 @@ def centroidOfDif(frame1, frame2, mov_thresh=10000):
 
 def centroidCalc(frame):
     cent = (None, None)
-    M = cv.moments(frame)
-    cX = int(M['m10'] / M['m00'])
-    cY = int(M['m01'] / M['m00'])
-    cent = (cX, cY)
+    try:
+        M = cv.moments(frame)
+        cX = int(M['m10'] / M['m00'])
+        cY = int(M['m01'] / M['m00'])
+        cent = (cX, cY)
+    except ZeroDivisionError:
+        pass
 
     return cent
 
