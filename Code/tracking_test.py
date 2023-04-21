@@ -16,9 +16,9 @@ left = camera.Camera("camera_parameters/camera0_intrinsics.dat",4)
 right = camera.Camera("camera_parameters/camera1_intrinsics.dat",6)
 
 # define mapping and operators
-mp = util.IdentityMap() #util.LogPolarMap((640, 480),(300, 100)) #
-det = util.SobelCartesian()#util.SobelPseudoLPM(mp) #
-shft = util.ShiftCartesian()#util.ShiftPseudoLPM(mp) #
+mp = util.LogPolarMap((640, 480),(300, 100)) #util.IdentityMap() #
+det = util.SobelPseudoLPM(mp) #util.SobelCartesian()#
+shft = util.ShiftPseudoLPM(mp) #util.ShiftCartesian()#
 get_edges = lambda x: det.detect(mp.map(x))
 movement_thresh = 2000 # empirical movement threshold > Identity=200000, LPM=2000
 
@@ -106,9 +106,9 @@ try:
             old_centroid_l = (None, None)
             old_centroid_r = (None, None)
             while not init_flag:
-                if (time.time() - still_start >= timeout):
-                    print("INFO: No movement in",timeout,"seconds.")
-                    break
+                # if (time.time() - still_start >= timeout):
+                #     print("INFO: No movement in",timeout,"seconds.")
+                #     break
 
                 curr_frame_l = get_edges(left.get_frame())
                 curr_frame_r = get_edges(right.get_frame())
@@ -123,19 +123,21 @@ try:
                 _, left_binary = cv.threshold(curr_frame_l,thresh, 255,cv.THRESH_BINARY)
                 # dilate left_binary
                 # left_binary = cv.erode(left_binary,e_kernel,iterations=1)
-                left_binary = cv.dilate(left_binary,d_kernel,iterations=1)
+                left_binary = mp.map(cv.dilate(mp.inv(left_binary),d_kernel,iterations=1))
 
                 ZDFDict = dict()
+                rbinDict = dict()
                 for k in shiftDict.keys():
                     # convert right shift to binary image
                     _, right_binary = cv.threshold(shiftDict[k],thresh,255,cv.THRESH_BINARY)
                     # dilate right_binary
                     # right_binary = cv.erode(right_binary,e_kernel,iterations=1)
-                    right_binary = cv.dilate(right_binary,d_kernel,iterations=1)
+                    right_binary = mp.map(cv.dilate(mp.inv(right_binary),d_kernel,iterations=1))
 
                     # apply AND etween left and right
                     # print(mp.inv(left_binary).shape,mp.inv(right_binary).shape,roi.shape)
                     ZDFDict[k] = cv.bitwise_and(mp.inv(left_binary), mp.inv(right_binary), mask=roi)
+                    rbinDict[k] = right_binary
 
                 # for k in ZDFDict.keys():
                 #     cv.imshow(str(k),ZDFDict[k])
@@ -186,8 +188,8 @@ try:
                     print("Timer reset")
                     still_start = time.time()
 
-                for i in range(len(servos)):
-                    servos[i].write((angles[i] + offsets[i])*scaling) # move servos
+                # for i in range(len(servos)):
+                #     servos[i].write((angles[i] + offsets[i])*scaling) # move servos
 
                 # print target position and log to file
 
@@ -201,7 +203,7 @@ try:
                 curr_frame_l = cv.circle(curr_frame_l,centroid_l,5,255,-1)
                 curr_frame_r = cv.circle(curr_frame_r,centroid_r,5,255,-1)
 
-                combined = np.hstack((mp.inv(curr_frame_l),mp.inv(curr_frame_r),mp.inv(marked)))
+                combined = np.hstack((mp.inv(left_binary),mp.inv(rbinDict[pixel_shift]),marked))
                 cv.imshow("view", combined)
                 if cv.waitKey(1) == ord('q'):
                     raise KeyboardInterrupt

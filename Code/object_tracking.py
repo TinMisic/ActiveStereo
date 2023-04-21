@@ -1,36 +1,29 @@
 import cv2 as cv
 import motion_detection as md
 import servo_controller as servo
-import util
 import camera
 import time
-import signal
-import sys
+import numpy as np
+import util
+import datetime
 
-def add_ang(angles, rel_ang, f = 0.05):
-    return [(f*angles[i] + (1-f)*(angles[i]+rel_ang[i])) for i in range(len(angles))]
-
-# signal handling - debug stop sends SIGTERM, but that doesn't release the cameras and causes problems
-class TerminationSignal(Exception):
-    pass
-
-def handle_sigterm(signum, frame):
-    raise TerminationSignal("Received SIGTERM signal, terminating...")
-
-signal.signal(signal.SIGTERM, handle_sigterm)
+starttime = time.time()
 
 # define global state and constants
-state = 'init'
 angles = [0, 0, 0, 0] # current servo angles
-
-# initialize image mapping, edge detector and shift operator
-mp = util.IdentityMap()
-det = util.SobelCartesian()
-shft = util.ShiftCartesian()
+init_flag = True
+timeout = 1 # seconds of immobility after which to start initilizaton again
 
 # initialize and start camera threads
-left = camera.Camera("camera_parameters/camera0_intrinsics.dat",6)
-right = camera.Camera("camera_parameters/camera1_intrinsics.dat",0)
+left = camera.Camera("camera_parameters/camera0_intrinsics.dat",4)
+right = camera.Camera("camera_parameters/camera1_intrinsics.dat",6)
+
+# define mapping and operators
+mp = util.LogPolarMap((640, 480),(300, 100)) #util.IdentityMap() #
+det = util.SobelPseudoLPM(mp) #util.SobelCartesian()#
+shft = util.ShiftPseudoLPM(mp) #util.ShiftCartesian()#
+get_edges = lambda x: det.detect(mp.map(x))
+movement_thresh = 2000 # empirical movement threshold > Identity=200000, LPM=2000
 
 # servo constants
 scaling = 180/270 
@@ -39,7 +32,15 @@ offsets = [x+offset for x in [2, 7, -4, -4]]    # individual offsets
 limit = 90      # absolute limit of servo movement
 speed = 60/0.13 # degrees per second
 
-thresh = 10000
+# Define the ROI
+x, y, w, h = 20, 20, 600, 440 # x, y, width, height
+roi = np.zeros((480, 640), dtype=np.uint8)
+cv.rectangle(roi, (x, y), (x + w, y + h), (255, 255, 255), -1)
+
+# Define kernel for dilation
+dim = 9
+d_kernel = np.ones((dim,dim), np.uint8)
+e_kernel = np.ones((2,2),np.uint8)
 
 # start board and initialize servos
 print("INFO: Initializing servos...")
@@ -52,67 +53,153 @@ for i in range(4):
     s.write(offsets[i]*scaling) # home position
     servos.append(s)
 
-print("INFO: Start tracking")
+# open log file
+now = datetime.datetime.now()
+filename = "log/" + now.strftime("%Y-%m-%d-%H-%M-%S") + ".txt"
+log = open(filename,'w')
+lost_counter=0 
+
+# open video file
+# Define the codec and create a VideoWriter object
+videoname = "log/" + now.strftime("%Y-%m-%d-%H-%M-%S") + ".mp4"
+fourcc = cv.VideoWriter_fourcc(*'mp4v')  # use appropriate codec
+fps = 30.0  # frames per second
+vwidth = 3*640  # frame width
+vheight = 480  # frame height
+vlog = cv.VideoWriter(videoname, fourcc, fps, (vwidth, vheight))
+
+time.sleep(1)
+print("INFO: Begin procedure")
 # main loop
 try:
-    # get frames, map them and detect edges
-    previous_r = right.get_frame()#det.detect(mp.map(right.get_frame()))
-    previous_l = left.get_frame()#det.detect(mp.map(left.get_frame()))
-
-    print("Before while")
     while True:
-        # cv.imshow("L",previous_l)
-        # cv.imshow("R",previous_r)
-        # get frames, map them and detect edges
-        current_r = right.get_frame()#det.detect(mp.map(right.get_frame()))
-        current_l = left.get_frame()#det.detect(mp.map(left.get_frame()))
-        # print("State case")
-        if state=='init':
-            # retrieve centroid of movement for left
-            _, centroidL = md.centroidOfDif(previous_l, current_l)
-            # retrieve centroid of movement for right
-            _, centroidR = md.centroidOfDif(previous_r, current_r)
-            
-            print(centroidL,centroidR)
-            # input()
-            # if centroid is detected, move cameras and change state
-            if centroidL!=(None, None) and centroidR!=(None, None):
-                # print("INFO: Movement...")
-                print("------------------------")
-                print("angles",angles)
-                rel_ang = servo.getAngles(centroidL, centroidR, left.intrinsic, right.intrinsic) # new relative angles
-                print("rel_ang",rel_ang)
-                # angles = [min(angles[i] + rel_ang[i], limit) if angles[i] + rel_ang[i] > 0 else max(angles[i] + rel_ang[i], -limit) for i in range(len(angles))] # new absolute angles
-                angles = [angles[i] + rel_ang[i] for i in range(len(angles))]
-                # angles = add_ang(angles,rel_ang)
-                print("angles+rel_ang",angles)
-                max_dif = abs(max(rel_ang, key = lambda x:abs(x))) # get max servo shift
-                wait = max_dif/speed # get waiting time for servos to arrive - no encoder so I'm relying on the speed of the servos. Waiting until cameras are still to capture new frame
+        if init_flag:
+            print("INFO: Initialization starting")
+            prev_frame_l = curr_frame_l = get_edges(left.get_frame())
+            prev_frame_r = curr_frame_r = get_edges(right.get_frame())
+            old_centroid_l = (None, None)
+            old_centroid_r = (None, None)
+            while(init_flag):
+                curr_frame_l = get_edges(left.get_frame())
+                curr_frame_r = get_edges(right.get_frame())
 
-                # input("Enter to move servos")
+                threshold_l, centroid_l = md.centroidOfDif(mp.inv(prev_frame_l), mp.inv(curr_frame_l), movement_thresh)
+                threshold_r, centroid_r = md.centroidOfDif(mp.inv(prev_frame_r), mp.inv(curr_frame_r), movement_thresh)
+
+                centroid_l = md.centroidSmoothing(old_centroid_l, centroid_l, 0.85)
+                centroid_r = md.centroidSmoothing(old_centroid_r, centroid_r, 0.85)
+
+                if centroid_l != (None, None) and centroid_r != (None, None):
+                    if( old_centroid_l!=(None,None) and ((old_centroid_l[0] - centroid_l[0])**2+(old_centroid_l[1]-centroid_l[1])**2)**0.5 < 10):
+                        init_flag=False
+
+                        rel_ang = servo.getAngles(centroid_l, centroid_r, left.intrinsic, right.intrinsic)
+                        angles = util.updateAngles(angles,rel_ang)
+
+                prev_frame_l = curr_frame_l
+                old_centroid_l = centroid_l
+                prev_frame_r = curr_frame_r
+                old_centroid_r = centroid_r
+
+                combined = np.hstack((mp.inv(curr_frame_l),mp.inv(curr_frame_r)))
+                cv.imshow("view", combined)
+                if cv.waitKey(1) == ord('q'):
+                    raise KeyboardInterrupt
+            
+            print("INFO: Initialization stopped")
+            for i in range(len(servos)):
+                servos[i].write((angles[i] + offsets[i])*scaling)
+
+        else:
+            print("INFO: Tracking started")
+            still_start = time.time()
+            while not init_flag:
+                if (time.time() - still_start >= timeout):
+                    print("INFO: No movement in",timeout,"seconds.")
+                    lost_counter+=1
+                    break
+
+                l = mp.map(left.get_frame())
+                r = mp.map(right.get_frame())
+                curr_frame_l = det.detect(l)
+                curr_frame_r = det.detect(r)
+
+                # generate shifts of vertical edge images
+                shiftDict = util.generateShifts(curr_frame_r, shft,shifts=45,stride=1)
+
+                # ZERO DISPARITY FILTER
+                thresh = 100 # tested and is somewhat good
+
+                # convert left to binary image
+                _, left_binary = cv.threshold(curr_frame_l,thresh, 255,cv.THRESH_BINARY)
+                # dilate left_binary
+                # left_binary = cv.erode(left_binary,e_kernel,iterations=1)
+                left_binary = mp.map(cv.dilate(mp.inv(left_binary),d_kernel,iterations=1))
+
+                ZDFDict = dict()
+                for k in shiftDict.keys():
+                    # convert right shift to binary image
+                    _, right_binary = cv.threshold(shiftDict[k],thresh,255,cv.THRESH_BINARY)
+                    # dilate right_binary
+                    # right_binary = cv.erode(right_binary,e_kernel,iterations=1)
+                    right_binary = mp.map(cv.dilate(mp.inv(right_binary),d_kernel,iterations=1))
+
+                    # apply AND etween left and right
+                    ZDFDict[k] = cv.bitwise_and(mp.inv(left_binary), mp.inv(right_binary), mask=roi)
+
+                # get pixels from ZDF shift with max match
+                pixel_shift = util.getMaxZDF(ZDFDict)
+                # convert pixel to angle
+                ZDFangle = servo.getAngleNormalised(right.intrinsic, pixel_shift)
+
+                # CENTROID CALCULATION
+
+                centroid_l = centroid_r = md.centroidCalc(ZDFDict[pixel_shift]) # get centroid from ZDF - the same centroid for both left and right, because ZDF is their shared edges
+                marked = cv.circle(ZDFDict[pixel_shift],centroid_l,5,255,-1)
+
+                n_angles = angles
+                if centroid_l != (None, None) and centroid_r != (None, None):
+                    rel_ang = servo.getAngles(centroid_l, centroid_r, left.intrinsic, right.intrinsic)
+                    print("rel_ang",rel_ang)
+                    n_angles=util.updateAngles(angles,rel_ang)
+
+                # Add virtual horopter angle to correct actual horopter
+                n_angles = util.updateAngles(n_angles,[0,0,ZDFangle,0])
+
+                angles = util.angleSmoothing(angles,n_angles)
+                # DEBUG: IGNORE VERTICAL ROTATIONS
+                # angles[1]=angles[3]=0                
+
+                if pixel_shift!=0 or sum(rel_ang)!=0: # reset still timer
+                    # print("Timer reset")
+                    still_start = time.time()
+
                 for i in range(len(servos)):
-                    servos[i].write((angles[i]+offsets[i])*scaling)
-                print(angles)
-                sys.stdout.flush()
-            
-                time.sleep(wait*10) # wait for sevos to arrive
-                # state = "tracking"
-            
-            previous_l = current_l
-            previous_r = current_r
+                    servos[i].write((angles[i] + offsets[i])*scaling) # move servos
 
-        elif state=='tracking':
-            # edge detection
-            pass
-            # create RIGHT virtual horopters by shift operator
-            pass
-            # AND operation for Zero Disparity Filter
-            pass
-            # maximal matching
-            pass
-            # calculate centroid and move cameras
-            pass
-except (KeyboardInterrupt, TerminationSignal) as e:
+                # print target position and log to file
+                position = util.getPosition(angles)
+                print(position)
+                log.write(str(position)+"\t"+str(time.time()-starttime)+"\n")
+
+                # reset rel_ang
+                rel_ang=list()            
+
+                curr_frame_l = cv.circle(curr_frame_l,centroid_l,5,255,-1)
+                curr_frame_r = cv.circle(curr_frame_r,centroid_r,5,255,-1)
+
+                combined = np.hstack((mp.inv(curr_frame_l),mp.inv(curr_frame_r),marked))
+                rgb_frame = cv.cvtColor(combined, cv.COLOR_GRAY2RGB)                
+                vlog.write(rgb_frame)
+                vlog.write(rgb_frame)
+                vlog.write(rgb_frame)
+                cv.imshow("view", combined)
+                if cv.waitKey(1) == ord('q'):
+                    raise KeyboardInterrupt
+            
+            init_flag = True
+
+except KeyboardInterrupt as e:
     for i in range(len(servos)):
         servos[i].write((offsets[i])*scaling)
         
@@ -121,3 +208,7 @@ except (KeyboardInterrupt, TerminationSignal) as e:
     left.stop()
     right.stop()
     board.exit()
+    log.write("#lost "+str(lost_counter))
+    log.close()
+
+vlog.release()

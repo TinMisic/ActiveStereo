@@ -139,7 +139,7 @@ class ShiftPseudoLPM(ShiftOp):
 
         # shift the image by delta
         M = np.float32([[1, 0, delta],[0, 1, 0]])
-        shft = cv2.warpAffine(input_img, M, (input_img.shape[1], input_img.shape[0]))
+        shft = cv2.warpAffine(cart, M, (cart.shape[1], cart.shape[0]))
 
         # convert back to lpm
         final = self.mapping.map(shft)
@@ -249,5 +249,23 @@ if __name__=="__main__":
     cv2.waitKey()
     cv2.destroyAllWindows()
     print(gray.shape)
+
+    shiftDict = generateShifts(m,shift,45,1)
+    for k in range(-5,6):
+        cart = mp.inv(m)
+        cv2.imshow("cart",cart)
+
+        # shift the image by delta
+        M = np.float32([[1, 0, k],[0, 1, 0]])
+        shft = cv2.warpAffine(cart, M, (cart.shape[1], cart.shape[0]))
+        cv2.imshow("shft",shft)
+
+        # convert back to lpm
+        final = mp.map(shft)
+
+
+        cv2.imshow(str(k),final)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     print(getPosition([-45,45, 45, -45]))

@@ -22,6 +22,7 @@ class Camera(threading.Thread):
         cap = cv2.VideoCapture(self.device_index)
         while not self._stop_event.is_set():
             ret, frame = cap.read()
+            # print(cap.get(cv2.CAP_PROP_FPS))
             if ret:
                 # Undistort the frame
                 frame = cv2.undistort(cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY), self.intrinsic, self.distortion)
@@ -79,7 +80,7 @@ class Camera(threading.Thread):
 
 if __name__=="__main__":
     cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 4)
-    cam2 = Camera("camera_parameters/camera1_intrinsics.dat", 6)
+    cam2 = Camera("camera_parameters/camera1_intrinsics.dat",6)
 
     while True:
         # # Request new frames from all cameras
@@ -89,7 +90,7 @@ if __name__=="__main__":
         # # Get the latest frames from each camera
         frame1 = cam1.get_frame()
         if frame1 is not None:
-            print(frame1.shape)
+            # print(frame1.shape)
             cv2.imshow('L',frame1)
 
         frame2 = cam2.get_frame()
