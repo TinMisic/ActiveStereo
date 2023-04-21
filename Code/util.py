@@ -184,6 +184,39 @@ def updateAngles(alphas, rel_ang, limit=90):
 def angleSmoothing(old, new, factor=0.85):
     return [old[i]*factor + new[i]*(1-factor) for i in range(len(old))]
 
+def getPosition(angles):
+    # get point where projective lines cross
+    x = -9 * np.sin(np.deg2rad(angles[0]) + np.deg2rad(angles[2]))
+    z = 18 * np.cos(np.deg2rad(angles[0])) * np.cos(np.deg2rad(angles[2]))
+    h = np.sin(np.deg2rad(angles[2]) - np.deg2rad(angles[0])) # homogenous factor
+
+    if h==0: # point at infinity
+        return np.array([np.nan, np.nan, np.nan, np.nan])
+
+    x = x/h
+    z = z/h
+
+    P = np.array([x, 0, z, 1])
+
+    # rotate P
+    sV = np.sin(np.deg2rad(angles[3]))
+    cV = np.cos(np.deg2rad(angles[3]))
+    R = np.array([[1,  0,   0, 0],
+                  [0, cV, -sV, 0],
+                  [0, sV,  cV, 0],
+                  [0,  0,   0, 1]])
+    
+    P = R@P
+
+    # translate P
+    T = np.array([[1, 0, 0,   0],
+                  [0, 1, 0, -10],
+                  [0, 0, 1,   0],
+                  [0, 0, 0,   1]])
+    P = T@P
+
+    return P
+
 if __name__=="__main__":
     # Load image
     img = cv2.imread('/home/tin/Downloads/marcus.png')
@@ -216,3 +249,5 @@ if __name__=="__main__":
     cv2.waitKey()
     cv2.destroyAllWindows()
     print(gray.shape)
+
+    print(getPosition([-45,-45, 45, 45]))
