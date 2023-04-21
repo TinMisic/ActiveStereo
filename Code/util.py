@@ -250,4 +250,4 @@ if __name__=="__main__":
     cv2.destroyAllWindows()
     print(gray.shape)
 
-    print(getPosition([-45,-45, 45, 45]))
+    print(getPosition([-45,45, 45, -45]))
