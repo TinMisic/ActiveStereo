@@ -80,7 +80,7 @@ class Camera(threading.Thread):
 
 if __name__=="__main__":
     cam1 = Camera("camera_parameters/camera0_intrinsics.dat", 4)
-    cam2 = Camera("camera_parameters/camera1_intrinsics.dat",6)
+    cam2 = Camera("camera_parameters/camera1_intrinsics.dat", 6)
 
     while True:
         # # Request new frames from all cameras

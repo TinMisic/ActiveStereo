@@ -188,7 +188,7 @@ try:
                 curr_frame_l = cv.circle(curr_frame_l,centroid_l,5,255,-1)
                 curr_frame_r = cv.circle(curr_frame_r,centroid_r,5,255,-1)
 
-                combined = np.hstack((mp.inv(curr_frame_l),mp.inv(curr_frame_r),marked))
+                combined = np.hstack((mp.inv(l),mp.inv(r),marked))
                 rgb_frame = cv.cvtColor(combined, cv.COLOR_GRAY2RGB)                
                 vlog.write(rgb_frame)
                 vlog.write(rgb_frame)
