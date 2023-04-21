@@ -42,7 +42,7 @@ def getAngleNormalised(CM, shift):
     fx = CM[0,0] # camera focus on x axis
     
 
-    uL = -shift # shift is inverted
+    uL = shift 
 
     alpha = np.rad2deg(np.arctan2(uL, fx))
 

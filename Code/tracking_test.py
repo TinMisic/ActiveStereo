@@ -34,6 +34,11 @@ x, y, w, h = 20, 20, 600, 440 # x, y, width, height
 roi = np.zeros((480, 640), dtype=np.uint8)
 cv.rectangle(roi, (x, y), (x + w, y + h), (255, 255, 255), -1)
 
+# Define kernel for dilation
+dim = 9
+d_kernel = np.ones((dim,dim), np.uint8)
+e_kernel = np.ones((2,2),np.uint8)
+
 # start board and initialize servos
 print("INFO: Initializing servos...")
 import pyfirmata
@@ -47,6 +52,9 @@ for i in range(4):
 
 time.sleep(1)
 print("INFO: Begin procedure")
+
+max_zdf_ang = 0
+max_stride = 0
 # main loop
 try:
     while True:
@@ -106,26 +114,42 @@ try:
                 curr_frame_r = get_edges(right.get_frame())
 
                 # generate shifts of vertical edge images
-                shiftDict = util.generateShifts(curr_frame_r, shft,shifts=21,stride=1)
+                shiftDict = util.generateShifts(curr_frame_r, shft,shifts=45,stride=1)
 
                 # ZERO DISPARITY FILTER
                 thresh = 100 # tested and is somewhat good
 
                 # convert left to binary image
                 _, left_binary = cv.threshold(curr_frame_l,thresh, 255,cv.THRESH_BINARY)
+                # dilate left_binary
+                # left_binary = cv.erode(left_binary,e_kernel,iterations=1)
+                left_binary = cv.dilate(left_binary,d_kernel,iterations=1)
 
                 ZDFDict = dict()
                 for k in shiftDict.keys():
                     # convert right shift to binary image
                     _, right_binary = cv.threshold(shiftDict[k],thresh,255,cv.THRESH_BINARY)
+                    # dilate right_binary
+                    # right_binary = cv.erode(right_binary,e_kernel,iterations=1)
+                    right_binary = cv.dilate(right_binary,d_kernel,iterations=1)
+
                     # apply AND etween left and right
                     # print(mp.inv(left_binary).shape,mp.inv(right_binary).shape,roi.shape)
                     ZDFDict[k] = cv.bitwise_and(mp.inv(left_binary), mp.inv(right_binary), mask=roi)
 
+                # for k in ZDFDict.keys():
+                #     cv.imshow(str(k),ZDFDict[k])
+
+                # cv.waitKey(0)
+                # cv.destroyAllWindows()
                 # get pixels from ZDF shift with max match
                 pixel_shift = util.getMaxZDF(ZDFDict)
+                if abs(pixel_shift)>abs(max_stride):
+                    max_stride = pixel_shift
                 # convert pixel to angle
                 ZDFangle = servo.getAngleNormalised(right.intrinsic, pixel_shift)
+                if abs(ZDFangle) > abs(max_zdf_ang):
+                    max_zdf_ang = ZDFangle
 
                 # CENTROID CALCULATION
 
@@ -193,3 +217,5 @@ except KeyboardInterrupt as e:
     left.stop()
     right.stop()
     board.exit()
+    print("max zdf stride",max_stride)
+    print("max zdf angle",max_zdf_ang)
